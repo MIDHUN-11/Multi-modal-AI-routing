@@ -1,5 +1,6 @@
 from classifier.predict import classify_prompt
 from models.ollama_client import call_model
+from metrics.latency import track_latency
 
 routing_table = {
     "coding": {
@@ -21,17 +22,23 @@ def route_prompt(prompt: str):
 
     task = classify_prompt(prompt)
 
-    primary_model = routing_table[task]["primary"]
-    fallback_model = routing_table[task]["fallback"]
+    primary = routing_table[task]["primary"]
+    fallback = routing_table[task]["fallback"]
 
     try:
-        print(f"Using primary model: {primary_model}")
 
-        return call_model(prompt, primary_model)
+        response, latency = track_latency(call_model, prompt, primary)
+
+        print(f"task={task} model={primary} latency={latency:.2f}s")
+
+        return response
 
     except Exception as e:
 
         print(f"Primary model failed: {e}")
-        print(f"Switching to fallback: {fallback_model}")
 
-        return call_model(prompt, fallback_model)
+        response, latency = track_latency(call_model, prompt, fallback)
+
+        print(f"fallback model={fallback} latency={latency:.2f}s")
+
+        return response
