@@ -1,18 +1,37 @@
 from classifier.predict import classify_prompt
 from models.ollama_client import call_model
 
+routing_table = {
+    "coding": {
+        "primary": "llama3",
+        "fallback": "mistral"
+    },
+    "math": {
+        "primary": "phi3",
+        "fallback": "llama3"
+    },
+    "general": {
+        "primary": "mistral",
+        "fallback": "llama3"
+    }
+}
+
 
 def route_prompt(prompt: str):
 
     task = classify_prompt(prompt)
 
-    if task == "coding":
-        model = "llama3"
+    primary_model = routing_table[task]["primary"]
+    fallback_model = routing_table[task]["fallback"]
 
-    elif task == "math":
-        model = "phi3"
+    try:
+        print(f"Using primary model: {primary_model}")
 
-    else:
-        model = "mistral"
+        return call_model(prompt, primary_model)
 
-    return call_model(prompt, model)
+    except Exception as e:
+
+        print(f"Primary model failed: {e}")
+        print(f"Switching to fallback: {fallback_model}")
+
+        return call_model(prompt, fallback_model)
