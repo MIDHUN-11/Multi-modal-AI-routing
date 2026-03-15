@@ -1,0 +1,11 @@
+coding:
+  primary: llama3
+  fallback: mistral
+
+math:
+  primary: phi3
+  fallback: llama3
+
+general:
+  primary: mistral
+  fallback: llama3

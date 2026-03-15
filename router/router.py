@@ -1,21 +1,9 @@
 from classifier.predict import classify_prompt
 from models.ollama_client import call_model
 from metrics.latency import track_latency
+from config.config_loader import load_routing_config
 
-routing_table = {
-    "coding": {
-        "primary": "llama3",
-        "fallback": "mistral"
-    },
-    "math": {
-        "primary": "phi3",
-        "fallback": "llama3"
-    },
-    "general": {
-        "primary": "mistral",
-        "fallback": "llama3"
-    }
-}
+routing_table = load_routing_config()
 
 
 def route_prompt(prompt: str):
@@ -26,7 +14,6 @@ def route_prompt(prompt: str):
     fallback = routing_table[task]["fallback"]
 
     try:
-
         response, latency = track_latency(call_model, prompt, primary)
 
         print(f"task={task} model={primary} latency={latency:.2f}s")
